@@ -1,0 +1,41 @@
+# Working Log
+
+- 2026-05-27 15:25 P/R=3.0 120000-step transient 연장 확인
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests\test_run_transient_check.py`, `.venv\Scripts\python.exe scripts\run_transient_check.py --config configs\h1_pr3_transient_check_120000.yaml --tag duration_120000`
+  - 핵심 결과: `V_theory/V_sim=9.70`, `omega_theory/omega_sim=7.16`, `force_residual_norm=0.1505`로 추가 감소했고 omega는 `OK`를 유지했다.
+  - 주의: velocity는 `steady_relative_change=0.1187`로 여전히 `TRANSIENT_LIKELY`이며 `torque_residual_norm=0.7532`는 거의 정체되어 물리식과 full sweep은 수정/실행하지 않았다.
+- 2026-05-27 15:14 P/R=3.0 duration transient check
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests`, `.venv\Scripts\python.exe scripts\run_transient_check.py --tag duration_initial`
+  - 핵심 결과: `total_steps=10000, 30000, 60000` 실행에서 `V_theory/V_sim`은 `140.02 -> 30.14 -> 14.97`, `omega_theory/omega_sim`은 `12.21 -> 7.74 -> 7.22`로 감소했고, omega 상태는 30000 steps부터 `OK`가 되었다.
+  - 주의: 60000 steps에서도 velocity 상태는 `TRANSIENT_LIKELY`, `torque_residual_norm=0.755`이므로 RFT 계수나 body drag 공식은 수정하지 않았다.
+- 2026-05-27 14:48 H1 theory 불일치 반복 진단 1차
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests`, `.venv\Scripts\python.exe scripts\run_h1_theory_check.py --tag iter1_residuals`
+  - 핵심 결과: force/torque balance 잔차와 유효 회전저항 진단을 추가했고, P/R=1, 3, 5 모두 `force_residual_norm=0.734~0.879`, `torque_residual_norm=0.777~0.867`, `TRANSIENT_LIKELY`로 확인되었다.
+  - 주의: 정상상태 미도달이 주요 제한으로 판단되어 RFT 계수나 resistance 모델은 추가 조정하지 않았고, H1/H2 장시간 sweep도 실행하지 않았다.
+
+- 2026-05-20 16:37 n_elem convergence 결과 보존 보완
+  - 실제 convergence를 실행하기 전, N별 결과에 분석 지표와 stiffness 지표가 빠지지 않도록 결과 저장 구조와 요약 출력을 보강했다.
+- 2026-05-20 16:42 n_elem convergence smoke 실행
+  - N=10, 20, 40 후보에서 지표 생성과 CSV 저장을 확인했고, N=10은 NAN/INF로 표시되어 후속 검토가 필요하다.
+- 2026-05-20 16:44 n_elem convergence 후보 정책 정리
+  - N=10을 낮은 해상도 후보로 제외하고, smoke 후보를 N=20, 40, 80으로 조정했다.
+- 2026-05-20 16:49 n_elem convergence smoke 재실행
+  - N=20, 40, 80 후보에서 지표와 CSV 저장을 확인했으며, 아직 수렴 판정은 확정되지 않았다.
+- 2026-05-20 16:52 H1/H2 1차 coarse sweep 준비
+  - 실제 sweep용 config를 만들고, 긴 실행은 명시적 허용 옵션이 있을 때만 가능하도록 안전장치를 추가했다.
+- 2026-05-20 16:59 H1 1차 coarse sweep 실행
+  - P/R 10개 조건을 실행해 summary와 raw CSV 생성을 확인했고, P/R=0.5는 NAN/INF로 별도 검토가 필요하다.
+- 2026-05-20 17:09 H1 coarse 결과 보존
+  - summary CSV를 보존 위치로 복사하고, refined sweep 전에 확인할 후보 구간과 주의사항을 연구노트로 정리했다.
+- 2026-05-27 13:58 해석 지표 및 결과 판정 체계 정리
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests`, `.venv\Scripts\python.exe scripts\run_single.py`
+  - 핵심 결과: error/steady-state/invalid 지표와 summary CSV/runner 출력을 통일했고, 테스트 42개가 통과했다.
+  - 주의: smoke 결과의 `SIM_NEAR_ZERO`/`MEAN_NEAR_ZERO`는 짧은 실행 진단이며, 긴 H1/H2/convergence sweep은 실행하지 않았다.
+- 2026-05-27 14:15 torque-driven RFT 물리 로직 보완
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests`, `.venv\Scripts\python.exe scripts\run_single.py`
+  - 핵심 결과: body drag를 포함한 torque balance theory와 inertial-frame `omega_sim`/efficiency 연결을 구현했고, 테스트 48개가 통과했다.
+  - 주의: smoke는 transient 연결 확인만 수행했으며, 실제 H1/H2 및 convergence 결과 재실행은 하지 않았다.
+- 2026-05-27 14:31 H1 torque-driven theory 대표 조건 점검
+  - 실행 명령: `.venv\Scripts\python.exe scripts\run_h1_theory_check.py`, `.venv\Scripts\python.exe -m pytest tests`
+  - 핵심 결과: P/R=1, 3, 5 모두 실행 및 저장에 성공했으나 `V_theory/V_sim`은 약 52, 140, 220이고 모두 `TRANSIENT_LIKELY`였다.
+  - 주의: 기존 H1 결과는 덮어쓰지 않았으며, 새 theory는 기존 theory보다 `V_theory`를 약 11.7-12.8배 크게 예측했다.
