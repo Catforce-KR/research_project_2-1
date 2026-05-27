@@ -44,6 +44,8 @@ def log_simulation_timeseries(
         - Vz_mean (m/s) : mean z-velocity of all nodes at each recorded step
         - Omega_z (rad/s) : mean angular velocity z-component
         - Input_Torque (Nm) : applied torque magnitude
+        - Applied_Torque_Global_Z_Projection (Nm) : material torque projected on inertial z
+        - Damping_Torque_Global_Z_Estimate (Nm) : equivalent resisting damper torque projection
         - Power_Efficiency : P_out / P_in at each recorded step
         - Theoretical_Error (%) : compatibility alias for pct_error_vs_sim
 
@@ -56,6 +58,9 @@ def log_simulation_timeseries(
     vel_list = sim_result.get("velocity", [])
     omega_list = sim_result.get("omega", [])
     omega_z_history = sim_result.get("omega_z_history", [])
+    torque_projection_history = sim_result.get("applied_torque_global_z_projection_history", [])
+    torque_alignment_history = sim_result.get("applied_torque_axis_alignment_history", [])
+    damping_torque_history = sim_result.get("damping_torque_global_z_history", [])
     params = sim_result.get("parameters", {})
     analysis = sim_result.get("analytical")
 
@@ -109,6 +114,18 @@ def log_simulation_timeseries(
             "Vz_mean": vz,
             "Omega_z": omz,
             "Input_Torque": torque_magnitude,
+            "Applied_Torque_Global_Z_Projection": (
+                torque_projection_history[i]
+                if i < len(torque_projection_history) else None
+            ),
+            "Applied_Torque_Axis_Alignment": (
+                torque_alignment_history[i]
+                if i < len(torque_alignment_history) else None
+            ),
+            "Damping_Torque_Global_Z_Estimate": (
+                damping_torque_history[i]
+                if i < len(damping_torque_history) else None
+            ),
             "Power_Efficiency": eta_power,
             "Theoretical_Error": theoretical_error,
             "V_theory": V_theory,

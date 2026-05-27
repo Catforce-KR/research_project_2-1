@@ -14,8 +14,8 @@ Current modules:
 
 - `geometry.py`: body-tail geometry generation, helix coordinates, directors, rest lengths.
 - `forces.py`: PyElastica RFT forcing and endpoint torque classes.
-- `callbacks.py`: PyElastica callback data collector.
-- `theory.py`: torque-driven analytical RFT resistance model, body drag approximation, and analytical/simulation comparison.
+- `callbacks.py`: PyElastica callback data collector, including inertial-axis omega, torque projection, and damping-equivalent diagnostic histories.
+- `theory.py`: torque-driven analytical RFT resistance model, body drag approximation, and analytical/simulation torque/damping diagnostics.
 - `analysis_metrics.py`: error, steady-state, and invalid-result post-processing shared by simulations and sweeps.
 - `simulator.py`: PyElastica system assembly and single-run execution.
 - `stiffness.py`: stiffness and deformation checks.

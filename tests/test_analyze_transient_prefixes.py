@@ -1,4 +1,5 @@
 import importlib.util
+import math
 import sys
 from pathlib import Path
 
@@ -29,6 +30,7 @@ def _config():
         "dt": 1.0e-5,
         "total_steps": [10],
         "fluid_viscosity": 0.1,
+        "density": 1000.0,
     }
 
 
@@ -51,6 +53,19 @@ def test_analyze_prefixes_reuses_steady_and_balance_metrics():
     assert row["omega_steady_state_status"] == "OK"
     assert row["failure_reason"] == "NONE"
     assert not row["invalid_result"]
+    assert row["total_rotational_resistance"] > 0.0
+    assert math.isclose(
+        row["body_rotational_fraction"] + row["helix_rotational_fraction"],
+        1.0,
+        rel_tol=1.0e-12,
+    )
+    assert row["torque_rotational_to_applied_ratio"] >= 0.0
+    assert row["torque_residual_to_applied_ratio"] >= 0.0
+    assert row["torque_frame_assumption"] == "ASSUMED_MATERIAL_COMPONENT_2"
+    assert row["omega_frame"] == "INERTIAL_GLOBAL_Z"
+    assert row["torque_frame_status"] == "PROJECTION_UNAVAILABLE"
+    assert row["damping_estimate_status"] == "ESTIMATED_FROM_MEAN_GLOBAL_Z_OMEGA_LEGACY_RAW"
+    assert row["damping_torque_estimate"] is not None
 
 
 def test_analyze_prefixes_rejects_checkpoint_past_run_length():

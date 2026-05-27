@@ -36,6 +36,9 @@ def _minimal_sim_result():
             "total_length": 0.1,
             "torque_magnitude": 1.0e-8,
         },
+        "applied_torque_global_z_projection_history": [1.0e-8, 1.0e-8],
+        "applied_torque_axis_alignment_history": [1.0, 1.0],
+        "damping_torque_global_z_history": [1.0e-9, 2.0e-9],
         "analytical": {
             "C_t": 1.0,
             "pct_error": 0.0,
@@ -86,8 +89,43 @@ def _minimal_sweep_results():
                 "force_residual_norm": 0.2,
                 "torque_residual": 0.3,
                 "torque_residual_norm": 0.4,
+                "torque_coupling_term": 0.01,
+                "torque_rotational_resistance_term": 0.02,
+                "torque_applied_term": 0.03,
+                "torque_balance_residual": 0.02,
+                "torque_coupling_to_applied_ratio": 0.1,
+                "torque_rotational_to_applied_ratio": 0.2,
+                "torque_residual_to_applied_ratio": 0.3,
+                "helix_rotational_resistance": 3.0,
+                "total_rotational_resistance": 3.01,
+                "body_rotational_fraction": 0.01 / 3.01,
+                "helix_rotational_fraction": 3.0 / 3.01,
                 "effective_rotational_resistance": 4.0,
                 "effective_rotational_resistance_ratio": 1.25,
+                "effective_D_from_omega_sim": 4.0,
+                "effective_D_ratio": 1.25,
+                "torque_frame_assumption": "ASSUMED_MATERIAL_COMPONENT_2",
+                "omega_frame": "INERTIAL_GLOBAL_Z",
+                "torque_axis": "COMPONENT_2_AT_FIRST_ELEMENT",
+                "omega_axis": "GLOBAL_Z",
+                "torque_sign_convention": "POSITIVE_APPLIED_COMPONENT_2",
+                "applied_torque_material_component": 0.03,
+                "applied_torque_global_z_projection": 0.029,
+                "applied_torque_axis_alignment": 0.97,
+                "torque_projection_to_omega_axis": 0.029,
+                "torque_frame_status": "PROJECTED_TO_GLOBAL_Z",
+                "frame_mismatch_risk": False,
+                "damping_model": "PYELASTICA_ANALYTICAL_LINEAR_DAMPER_DEPRECATED_DAMPING_CONSTANT",
+                "damping_constant": 0.001,
+                "damping_effective_coefficient": 0.004,
+                "rotational_damping_mass": 4.0,
+                "damping_estimate_status": "PROJECTED_ELEMENTWISE_DEPRECATED_DAMPER_EQUIVALENT",
+                "damping_torque_estimate": 0.01,
+                "damping_torque_to_applied_ratio": 0.33,
+                "torque_balance_with_damping_residual": 0.01,
+                "torque_balance_with_damping_residual_ratio": 0.1,
+                "torque_balance_missing_fraction": 0.3,
+                "torque_balance_interpretation": "DAMPING_DOMINATED",
             },
             "efficiency": {
                 "eta_slip": 0.1,
@@ -119,6 +157,10 @@ def test_log_simulation_timeseries_defaults_to_data_raw(tmp_path, monkeypatch):
 
     assert Path(saved) == Path("data/raw/single.csv")
     assert (tmp_path / "data" / "raw" / "single.csv").is_file()
+    with (tmp_path / "data" / "raw" / "single.csv").open(newline="") as f:
+        row = next(csv.DictReader(f))
+    assert row["Applied_Torque_Global_Z_Projection"] == "1e-08"
+    assert row["Damping_Torque_Global_Z_Estimate"] == "1e-09"
 
 
 def test_log_sweep_summary_defaults_to_data_processed(tmp_path, monkeypatch):
@@ -152,8 +194,21 @@ def test_log_sweep_summary_defaults_to_data_processed(tmp_path, monkeypatch):
     assert row["body_translational_drag"] == "0.5"
     assert row["force_residual_norm"] == "0.2"
     assert row["torque_residual_norm"] == "0.4"
+    assert row["torque_coupling_term"] == "0.01"
+    assert row["torque_rotational_to_applied_ratio"] == "0.2"
+    assert row["body_rotational_fraction"] == str(0.01 / 3.01)
+    assert row["helix_rotational_fraction"] == str(3.0 / 3.01)
     assert row["effective_rotational_resistance"] == "4.0"
     assert row["effective_rotational_resistance_ratio"] == "1.25"
+    assert row["effective_D_from_omega_sim"] == "4.0"
+    assert row["effective_D_ratio"] == "1.25"
+    assert row["torque_frame_assumption"] == "ASSUMED_MATERIAL_COMPONENT_2"
+    assert row["omega_frame"] == "INERTIAL_GLOBAL_Z"
+    assert row["torque_frame_status"] == "PROJECTED_TO_GLOBAL_Z"
+    assert row["damping_model"] == "PYELASTICA_ANALYTICAL_LINEAR_DAMPER_DEPRECATED_DAMPING_CONSTANT"
+    assert row["damping_torque_to_applied_ratio"] == "0.33"
+    assert row["torque_balance_with_damping_residual_ratio"] == "0.1"
+    assert row["torque_balance_interpretation"] == "DAMPING_DOMINATED"
     assert row["omega_used"] == "2.0"
     assert row["omega_source"] == "omega_sim"
     assert row["efficiency_model"] == "rft_useful_power_ratio"

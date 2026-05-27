@@ -43,3 +43,11 @@
   - 실행 명령: `.venv\Scripts\python.exe scripts\run_h1_theory_check.py`, `.venv\Scripts\python.exe -m pytest tests`
   - 핵심 결과: P/R=1, 3, 5 모두 실행 및 저장에 성공했으나 `V_theory/V_sim`은 약 52, 140, 220이고 모두 `TRANSIENT_LIKELY`였다.
   - 주의: 기존 H1 결과는 덮어쓰지 않았으며, 새 theory는 기존 theory보다 `V_theory`를 약 11.7-12.8배 크게 예측했다.
+- 2026-05-27 16:27 P/R=3.0 torque balance breakdown 재분석
+  - 실행 명령: `.venv\Scripts\python.exe scripts\analyze_transient_prefixes.py`, `.venv\Scripts\python.exe -m pytest tests`
+  - 핵심 결과: 기존 480000-step raw 시계열에서 applied torque 대비 rotational 항은 약 `0.14115`, coupling 항은 약 `0.00119`, residual은 약 `0.86004`로 유지되었고 테스트 55개가 통과했다.
+  - 주의: 재시뮬레이션이나 물리 공식 수정 없이 진단 필드와 frame 가정 기록만 추가했다.
+- 2026-05-27 19:11 damping/frame torque attribution 진단 추가
+  - 실행 명령: `.venv\Scripts\python.exe scripts\analyze_transient_prefixes.py`, `.venv\Scripts\python.exe -m pytest tests`
+  - 핵심 결과: 기존 480000-step raw의 평균축 damper 근사에서 damping torque 비율은 약 `0.89566`, damping 포함 residual 비율은 약 `0.03562`로 계산되었다.
+  - 주의: 기존 raw에는 torque projection/director history가 없어 damping 값은 근사 진단이며, 물리 공식과 장시간 실행은 변경하지 않았다.

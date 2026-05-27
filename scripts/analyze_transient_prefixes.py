@@ -25,9 +25,11 @@ DEFAULT_OUTPUT = (
     PROJECT_ROOT
     / "data"
     / "processed"
-    / "h1_pr3_transient_check_duration_480000_prefix_summary.csv"
+    / "h1_pr3_transient_check_duration_480000_torque_breakdown_summary.csv"
 )
 DEFAULT_CHECKPOINTS = (60000, 120000, 240000, 360000, 480000)
+DAMPING_MODEL = "PYELASTICA_ANALYTICAL_LINEAR_DAMPER_DEPRECATED_DAMPING_CONSTANT"
+DAMPING_CONSTANT = 1.0e-3
 
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
@@ -91,7 +93,9 @@ def analyze_prefixes(
     )
     from helical_propeller.theory import (
         compute_balance_diagnostics,
+        compute_damping_torque_diagnostics,
         compute_theoretical_velocity,
+        torque_frame_metadata,
     )
 
     dt = float(config["dt"])
@@ -106,6 +110,12 @@ def analyze_prefixes(
         torque_magnitude=float(config["torque_magnitude"]),
         body_length_ratio=float(config["body_length_ratio"]),
         body_radius=float(config.get("body_radius", config["radius"])),
+    )
+    rotational_damping_mass = (
+        float(config["density"])
+        * np.pi
+        * float(config["radius"]) ** 2
+        * float(config["total_length"])
     )
     rows = []
     for checkpoint_steps in checkpoints:
@@ -127,6 +137,7 @@ def analyze_prefixes(
         V_sim = steady["steady_last_mean"]
         omega_sim = omega_steady["steady_last_mean"]
         errors = compute_error_metrics(V_sim, theory["V_theory"])
+        window_samples = max(1, len(prefix) // 5)
         balance = compute_balance_diagnostics(
             V_sim=V_sim,
             omega_sim=omega_sim,
@@ -134,9 +145,44 @@ def analyze_prefixes(
             B=theory["B"],
             D_total=theory["D_total"],
             torque_magnitude=float(config["torque_magnitude"]),
+            D=theory["D"],
+            body_rotational_drag=theory["body_rotational_drag"],
+        )
+        if "Applied_Torque_Global_Z_Projection" in prefix:
+            projection = float(
+                prefix["Applied_Torque_Global_Z_Projection"].iloc[-window_samples:].mean()
+            )
+            alignment = float(
+                prefix["Applied_Torque_Axis_Alignment"].iloc[-window_samples:].mean()
+            )
+        else:
+            projection = None
+            alignment = None
+        frame = torque_frame_metadata(
+            applied_torque_material_component=float(config["torque_magnitude"]),
+            applied_torque_global_z_projection=projection,
+            applied_torque_axis_alignment=alignment,
+        )
+        if "Damping_Torque_Global_Z_Estimate" in prefix:
+            damping_torque_estimate = float(
+                prefix["Damping_Torque_Global_Z_Estimate"].iloc[-window_samples:].mean()
+            )
+            damping_status = "PROJECTED_ELEMENTWISE_DEPRECATED_DAMPER_EQUIVALENT"
+        else:
+            damping_torque_estimate = None
+            damping_status = "ESTIMATED_FROM_MEAN_GLOBAL_Z_OMEGA_LEGACY_RAW"
+        damping = compute_damping_torque_diagnostics(
+            torque_balance_residual=balance["torque_balance_residual"],
+            omega_sim=omega_sim,
+            torque_magnitude=float(config["torque_magnitude"]),
+            damping_model=DAMPING_MODEL,
+            damping_constant=DAMPING_CONSTANT,
+            rotational_damping_mass=rotational_damping_mass,
+            damping_torque_estimate=damping_torque_estimate,
+            damping_estimate_status=damping_status,
+            frame_mismatch_risk=frame["frame_mismatch_risk"],
         )
         invalid_result, failure_reason = _prefix_invalid_reason(prefix, theory)
-        window_samples = max(1, len(prefix) // 5)
         rows.append({
             "checkpoint_steps": int(checkpoint_steps),
             "final_time": float(prefix["Time"].iloc[-1]),
@@ -156,8 +202,30 @@ def analyze_prefixes(
             "omega_steady_relative_change": omega_steady["steady_relative_change"],
             "force_residual_norm": balance["force_residual_norm"],
             "torque_residual_norm": balance["torque_residual_norm"],
-            "effective_D_from_omega_sim": balance["effective_rotational_resistance"],
-            "effective_D_ratio": balance["effective_rotational_resistance_ratio"],
+            "torque_coupling_term": balance["torque_coupling_term"],
+            "torque_rotational_resistance_term": balance[
+                "torque_rotational_resistance_term"
+            ],
+            "torque_applied_term": balance["torque_applied_term"],
+            "torque_balance_residual": balance["torque_balance_residual"],
+            "torque_coupling_to_applied_ratio": balance[
+                "torque_coupling_to_applied_ratio"
+            ],
+            "torque_rotational_to_applied_ratio": balance[
+                "torque_rotational_to_applied_ratio"
+            ],
+            "torque_residual_to_applied_ratio": balance[
+                "torque_residual_to_applied_ratio"
+            ],
+            "helix_rotational_resistance": balance["helix_rotational_resistance"],
+            "body_rotational_drag": theory["body_rotational_drag"],
+            "total_rotational_resistance": balance["total_rotational_resistance"],
+            "body_rotational_fraction": balance["body_rotational_fraction"],
+            "helix_rotational_fraction": balance["helix_rotational_fraction"],
+            "effective_D_from_omega_sim": balance["effective_D_from_omega_sim"],
+            "effective_D_ratio": balance["effective_D_ratio"],
+            **frame,
+            **damping,
             "invalid_result": invalid_result,
             "failure_reason": failure_reason,
         })

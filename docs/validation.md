@@ -15,8 +15,15 @@ Track at minimum:
 - `omega_sim`, `omega_theory`, `omega_source`, and `theory_mode`
 - torque-driven resistance terms `A`, `B`, `D`, `A_total`, `D_total` and body drag terms
 - final-window `force_residual_norm`, `torque_residual_norm`, and inferred `effective_rotational_resistance` before changing physical coefficients
+- torque term breakdown (`torque_coupling_term`, `torque_rotational_resistance_term`, `torque_applied_term`, `torque_balance_residual`) and each applied-torque-referenced ratio
+- rotational resistance decomposition (`helix_rotational_resistance`, `body_rotational_drag`, `total_rotational_resistance`, fractional shares, and `effective_D_ratio`)
+- frame/source labels (`torque_frame_assumption`, `omega_frame`, `torque_axis`, `omega_axis`, `torque_sign_convention`)
+- damper attribution fields (`damping_model`, `damping_constant`, `damping_estimate_status`, `damping_torque_estimate`, `damping_torque_to_applied_ratio`, and damping-adjusted residual)
+- projection availability fields (`applied_torque_global_z_projection`, `applied_torque_axis_alignment`, `torque_frame_status`, and `frame_mismatch_risk`)
 - `C_t`
 - `C_n`
+
+For the P/R=3.0 duration diagnostic, recompute torque breakdown from the stored 480000-step raw time-series using `scripts/analyze_transient_prefixes.py`. This prefix analysis must be preferred over another long run when the necessary `Vz_mean` and `Omega_z` history is already present. Damping attribution from a legacy raw CSV is approximate because it lacks elementwise material angular velocity and director-based torque projection; only a newly executed diagnostic run can populate those projection histories directly.
 
 ## Smoke Test
 

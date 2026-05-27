@@ -55,9 +55,44 @@ SUMMARY_FIELDS = (
     "omega_steady_relative_change",
     "force_residual_norm",
     "torque_residual_norm",
+    "torque_coupling_term",
+    "torque_rotational_resistance_term",
+    "torque_applied_term",
+    "torque_balance_residual",
+    "torque_coupling_to_applied_ratio",
+    "torque_rotational_to_applied_ratio",
+    "torque_residual_to_applied_ratio",
+    "helix_rotational_resistance",
+    "body_rotational_drag",
+    "total_rotational_resistance",
+    "body_rotational_fraction",
+    "helix_rotational_fraction",
     "effective_D_from_omega_sim",
     "effective_rotational_resistance_ratio",
+    "effective_D_ratio",
     "D_total",
+    "torque_frame_assumption",
+    "omega_frame",
+    "torque_axis",
+    "omega_axis",
+    "torque_sign_convention",
+    "applied_torque_material_component",
+    "applied_torque_global_z_projection",
+    "applied_torque_axis_alignment",
+    "torque_projection_to_omega_axis",
+    "torque_frame_status",
+    "frame_mismatch_risk",
+    "damping_model",
+    "damping_constant",
+    "damping_effective_coefficient",
+    "rotational_damping_mass",
+    "damping_estimate_status",
+    "damping_torque_estimate",
+    "damping_torque_to_applied_ratio",
+    "torque_balance_with_damping_residual",
+    "torque_balance_with_damping_residual_ratio",
+    "torque_balance_missing_fraction",
+    "torque_balance_interpretation",
     "invalid_result",
     "failure_reason",
 )
@@ -167,11 +202,68 @@ def build_summary_row(result: dict, total_steps: int, step_skip: int) -> dict:
         "omega_steady_relative_change": analytical.get("omega_relative_change"),
         "force_residual_norm": analytical.get("force_residual_norm"),
         "torque_residual_norm": analytical.get("torque_residual_norm"),
-        "effective_D_from_omega_sim": analytical.get("effective_rotational_resistance"),
+        "torque_coupling_term": analytical.get("torque_coupling_term"),
+        "torque_rotational_resistance_term": analytical.get(
+            "torque_rotational_resistance_term"
+        ),
+        "torque_applied_term": analytical.get("torque_applied_term"),
+        "torque_balance_residual": analytical.get("torque_balance_residual"),
+        "torque_coupling_to_applied_ratio": analytical.get(
+            "torque_coupling_to_applied_ratio"
+        ),
+        "torque_rotational_to_applied_ratio": analytical.get(
+            "torque_rotational_to_applied_ratio"
+        ),
+        "torque_residual_to_applied_ratio": analytical.get(
+            "torque_residual_to_applied_ratio"
+        ),
+        "helix_rotational_resistance": analytical.get("helix_rotational_resistance"),
+        "body_rotational_drag": analytical.get("body_rotational_drag"),
+        "total_rotational_resistance": analytical.get("total_rotational_resistance"),
+        "body_rotational_fraction": analytical.get("body_rotational_fraction"),
+        "helix_rotational_fraction": analytical.get("helix_rotational_fraction"),
+        "effective_D_from_omega_sim": analytical.get(
+            "effective_D_from_omega_sim",
+            analytical.get("effective_rotational_resistance"),
+        ),
         "effective_rotational_resistance_ratio": analytical.get(
             "effective_rotational_resistance_ratio"
         ),
+        "effective_D_ratio": analytical.get(
+            "effective_D_ratio",
+            analytical.get("effective_rotational_resistance_ratio"),
+        ),
         "D_total": analytical.get("D_total"),
+        "torque_frame_assumption": analytical.get("torque_frame_assumption"),
+        "omega_frame": analytical.get("omega_frame"),
+        "torque_axis": analytical.get("torque_axis"),
+        "omega_axis": analytical.get("omega_axis"),
+        "torque_sign_convention": analytical.get("torque_sign_convention"),
+        "applied_torque_material_component": analytical.get("applied_torque_material_component"),
+        "applied_torque_global_z_projection": analytical.get(
+            "applied_torque_global_z_projection"
+        ),
+        "applied_torque_axis_alignment": analytical.get("applied_torque_axis_alignment"),
+        "torque_projection_to_omega_axis": analytical.get("torque_projection_to_omega_axis"),
+        "torque_frame_status": analytical.get("torque_frame_status"),
+        "frame_mismatch_risk": analytical.get("frame_mismatch_risk"),
+        "damping_model": analytical.get("damping_model"),
+        "damping_constant": analytical.get("damping_constant"),
+        "damping_effective_coefficient": analytical.get("damping_effective_coefficient"),
+        "rotational_damping_mass": analytical.get("rotational_damping_mass"),
+        "damping_estimate_status": analytical.get("damping_estimate_status"),
+        "damping_torque_estimate": analytical.get("damping_torque_estimate"),
+        "damping_torque_to_applied_ratio": analytical.get(
+            "damping_torque_to_applied_ratio"
+        ),
+        "torque_balance_with_damping_residual": analytical.get(
+            "torque_balance_with_damping_residual"
+        ),
+        "torque_balance_with_damping_residual_ratio": analytical.get(
+            "torque_balance_with_damping_residual_ratio"
+        ),
+        "torque_balance_missing_fraction": analytical.get("torque_balance_missing_fraction"),
+        "torque_balance_interpretation": analytical.get("torque_balance_interpretation"),
         "invalid_result": result.get("invalid_result"),
         "failure_reason": result.get("failure_reason"),
     }
@@ -247,7 +339,14 @@ def main(argv: list[str] | None = None) -> int:
                 f"omega_ratio={row['omega_theory_over_omega_sim']}, "
                 f"steady={row['steady_state_status']}, "
                 f"omega_steady={row['omega_steady_state_status']}, "
-                f"torque_residual_norm={row['torque_residual_norm']}"
+                f"torque_rot/applied={row['torque_rotational_to_applied_ratio']}, "
+                f"torque_coupling/applied={row['torque_coupling_to_applied_ratio']}, "
+                f"torque_resid/applied={row['torque_residual_to_applied_ratio']}, "
+                f"effective_D_ratio={row['effective_D_ratio']}, "
+                f"damping/applied={row['damping_torque_to_applied_ratio']}, "
+                f"resid_with_damping/applied={row['torque_balance_with_damping_residual_ratio']}, "
+                f"torque_interp={row['torque_balance_interpretation']}, "
+                f"frames={row['torque_frame_status']}/{row['omega_frame']}"
             )
     finally:
         simulator_module.log_simulation_timeseries = original_timeseries_logger

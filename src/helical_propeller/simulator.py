@@ -10,6 +10,9 @@ from .logging_utils import log_simulation_timeseries
 from .stiffness import stiffness_check
 from .theory import analytical_comparison
 
+DAMPING_MODEL = "PYELASTICA_ANALYTICAL_LINEAR_DAMPER_DEPRECATED_DAMPING_CONSTANT"
+DAMPING_CONSTANT = 1e-3
+
 class SpiralRodSimulator(
     ea.BaseSystemCollection, 
     ea.Forcing, 
@@ -145,7 +148,11 @@ def run_simulation(
     # 4. 외부 힘(RFT, 댐퍼, 토크) 적용
     spiral_sim.add_forcing_to(spiral_rod).using(ResistiveForceTheoryForcing, fluid_viscosity=fluid_viscosity, radius=radius, rod_total_length=total_length)
     
-    spiral_sim.dampen(spiral_rod).using(ea.AnalyticalLinearDamper, damping_constant=1e-3, time_step=np.float64(dt))
+    spiral_sim.dampen(spiral_rod).using(
+        ea.AnalyticalLinearDamper,
+        damping_constant=DAMPING_CONSTANT,
+        time_step=np.float64(dt),
+    )
     
     spiral_sim.add_forcing_to(spiral_rod).using(EndpointTorques, start_torque=np.array([0.0, 0.0, torque_magnitude]))
 
@@ -156,10 +163,19 @@ def run_simulation(
         "velocity": [],
         "omega": [],
         "omega_z": [],
+        "applied_torque_global_z_projection": [],
+        "applied_torque_axis_alignment": [],
+        "damping_torque_global_z": [],
         "kappa": [],
         "sigma": [],
     }
-    spiral_sim.collect_diagnostics(spiral_rod).using(BasicDataCollector, step_skip=step_skip, callback_params=rod_data)
+    spiral_sim.collect_diagnostics(spiral_rod).using(
+        BasicDataCollector,
+        step_skip=step_skip,
+        callback_params=rod_data,
+        applied_torque_material=np.array([0.0, 0.0, torque_magnitude]),
+        damping_constant=DAMPING_CONSTANT,
+    )
 
     # 6. 실행
     spiral_sim.finalize()
@@ -192,6 +208,13 @@ def run_simulation(
         "vz_history": vz_history,
         "omega_history": omega_history,
         "omega_z_history": omega_z_history,
+        "applied_torque_global_z_projection_history": list(
+            rod_data["applied_torque_global_z_projection"]
+        ),
+        "applied_torque_axis_alignment_history": list(
+            rod_data["applied_torque_axis_alignment"]
+        ),
+        "damping_torque_global_z_history": list(rod_data["damping_torque_global_z"]),
         "final_velocity": rod_data["velocity"][-1] if rod_data["velocity"] else None,
         "final_time": rod_data["time"][-1] if rod_data["time"] else total_steps * dt,
         "parameters": {
@@ -208,6 +231,10 @@ def run_simulation(
             "dt": dt,
             "total_steps": total_steps,
             "torque_magnitude": torque_magnitude,
+            "damping_model": DAMPING_MODEL,
+            "damping_constant": DAMPING_CONSTANT,
+            "rotational_damping_mass": float(np.sum(mass)),
+            "damping_estimate_status": "PROJECTED_ELEMENTWISE_DEPRECATED_DAMPER_EQUIVALENT",
         }
     }
 
@@ -260,6 +287,16 @@ def run_simulation(
             f"pct_vs_sim={result['pct_error_vs_sim']}, "
             f"error_status={result['error_status']}, "
             f"steady_state={result['steady_state_status']}, "
+            f"torque_rot/applied={result['torque_rotational_to_applied_ratio']}, "
+            f"torque_coupling/applied={result['torque_coupling_to_applied_ratio']}, "
+            f"torque_resid/applied={result['torque_residual_to_applied_ratio']}, "
+            f"body_rot_frac={result['body_rotational_fraction']}, "
+            f"helix_rot_frac={result['helix_rotational_fraction']}, "
+            f"effective_D_ratio={result['effective_D_ratio']}, "
+            f"frames={result['torque_frame_assumption']}/{result['omega_frame']}, "
+            f"damping/applied={result['damping_torque_to_applied_ratio']}, "
+            f"resid_with_damping/applied={result['torque_balance_with_damping_residual_ratio']}, "
+            f"torque_interp={result['torque_balance_interpretation']}, "
             f"failure_reason={result['failure_reason']}, "
             f"invalid={result['invalid_result']}"
         )

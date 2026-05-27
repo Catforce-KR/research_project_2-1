@@ -44,6 +44,8 @@ Representative transient check:
 - If velocity remains transient after the initial duration series, use `configs/h1_pr3_transient_check_120000.yaml` for the single `total_steps=120000` follow-up before changing physical formulas.
 - For the final duration-only diagnosis, use `configs/h1_pr3_transient_check_480000.yaml` once and run `scripts/analyze_transient_prefixes.py` on its raw time-series to evaluate checkpoints without repeated simulations.
 - Interpret `V_sim`, `omega_sim`, steady-state classifications, force/torque balance residuals, and effective rotational resistance together. It is a duration-sensitivity diagnostic, not an H1 sweep or a basis for tuning RFT coefficients.
+- When torque residual persists after `V_sim` and `omega_sim` stabilize, use the prefix analyzer's torque-term ratios, rotational-resistance fractions, and frame metadata before considering any RFT or body-drag formula change.
+- Use the damping-adjusted residual only as attribution evidence: legacy raw output uses a mean-axis estimate, while a future targeted run can write projected torque and elementwise damping-equivalent histories directly.
 
 ## H2: Body-To-Tail Length Ratio Sweep
 

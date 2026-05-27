@@ -45,6 +45,17 @@ def test_transient_summary_maps_existing_diagnostic_fields():
             "torque_residual_norm": 0.5,
             "effective_rotational_resistance": 0.6,
             "effective_rotational_resistance_ratio": 7.0,
+            "torque_rotational_to_applied_ratio": 0.2,
+            "torque_coupling_to_applied_ratio": 0.01,
+            "torque_residual_to_applied_ratio": 0.79,
+            "body_rotational_fraction": 0.3,
+            "helix_rotational_fraction": 0.7,
+            "torque_frame_assumption": "ASSUMED_MATERIAL_COMPONENT_2",
+            "omega_frame": "INERTIAL_GLOBAL_Z",
+            "torque_frame_status": "PROJECTED_TO_GLOBAL_Z",
+            "damping_torque_to_applied_ratio": 0.8,
+            "torque_balance_with_damping_residual_ratio": 0.05,
+            "torque_balance_interpretation": "DAMPING_DOMINATED",
             "D_total": 0.1,
         },
     }
@@ -56,6 +67,11 @@ def test_transient_summary_maps_existing_diagnostic_fields():
     assert row["omega_steady_state_status"] == "TRANSIENT_LIKELY"
     assert row["effective_D_from_omega_sim"] == 0.6
     assert row["effective_rotational_resistance_ratio"] == 7.0
+    assert row["effective_D_ratio"] == 7.0
+    assert row["torque_residual_to_applied_ratio"] == 0.79
+    assert row["torque_frame_assumption"] == "ASSUMED_MATERIAL_COMPONENT_2"
+    assert row["damping_torque_to_applied_ratio"] == 0.8
+    assert row["torque_balance_interpretation"] == "DAMPING_DOMINATED"
 
 
 def test_transient_runner_dry_run_reports_cases_without_simulation(capsys):

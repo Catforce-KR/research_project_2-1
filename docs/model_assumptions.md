@@ -53,6 +53,25 @@ Reports must clearly distinguish:
 - `steady_state_status` is a diagnostic based on the final 20 percent velocity window relative to the preceding 20 percent window; `TRANSIENT_LIKELY` and `MEAN_NEAR_ZERO` flag interpretation limits rather than proving simulation failure.
 - `force_residual_norm` and `torque_residual_norm` evaluate the steady analytical balance equations at final-window simulation averages. Nonzero values in a transient, damped, deformable run diagnose comparison limits; they are not themselves evidence that the RFT coefficient implementation is wrong.
 - `effective_rotational_resistance` infers the rotational resistance needed to balance the measured `omega_sim` at the configured torque and axial coupling. It should be interpreted only after angular-velocity steady state is established.
+- Torque balance diagnostics now expose `B * V_sim`, `D_total * omega_sim`, and applied torque separately, together with ratios referenced to the applied torque. This breakdown is diagnostic only and does not alter the resistance model.
+- Rotational resistance diagnostics expose helix and body shares of the existing `D_total`, plus `effective_D_ratio`, so a persistent torque mismatch can be attributed before changing a drag formula.
+- `torque_balance_with_damping_residual` subtracts an estimated resisting damper torque from the existing torque residual. It is an attribution diagnostic and is not included in `V_theory` or `omega_theory`.
+
+## Torque And Angular-Velocity Frame Convention
+
+- `EndpointTorques` adds the configured vector `[0, 0, torque_magnitude]` to `system.external_torques[:, 0]`.
+- PyElastica's rotational evolution combines `external_torques` with material angular quantities; the diagnostic metadata therefore records the applied torque convention conservatively as `ASSUMED_MATERIAL_COMPONENT_2` until that interpretation is separately validated.
+- The callback explicitly converts stored material-frame angular velocity through `director_collection` and records `omega_sim` as `INERTIAL_GLOBAL_Z`.
+- A comparison between an assumed material-component endpoint torque and an inertial global-z averaged angular velocity may contribute to torque-balance residuals; the frame labels must be retained with diagnostic output.
+- New simulations record `applied_torque_global_z_projection` and `applied_torque_axis_alignment` through the callback. Previously saved raw CSV files do not contain director histories or projected torque and are explicitly classified as `PROJECTION_UNAVAILABLE`.
+
+## Numerical Damping Diagnostic
+
+- The simulation currently uses PyElastica `AnalyticalLinearDamper` with the deprecated `damping_constant=1e-3` protocol.
+- In that protocol, rotational rates are multiplied elementwise by an exponential factor derived from `damping_constant`, element mass, inverse rotational inertia, and dilatation. Its equivalent resisting material torque is proportional to `damping_constant * element_mass * omega_material`.
+- For new simulations, the callback forms that elementwise equivalent torque and projects its sum onto inertial global-z, consistent with the stored `omega_sim` axis.
+- For legacy raw CSV reanalysis, elementwise material omega and director history are unavailable. The stored diagnostic therefore estimates `damping_torque_estimate` as `damping_constant * rotational_damping_mass * omega_sim`, using the implemented rod mass and a uniform global-z rotation assumption; it is labeled `ESTIMATED_FROM_MEAN_GLOBAL_Z_OMEGA_LEGACY_RAW`.
+- The numerical damper is not part of the RFT analytical resistance model. If its estimated torque explains a large residual, the next comparison must separate numerical relaxation from intended hydrodynamic resistance before modifying RFT coefficients or body drag.
 
 ## Efficiency Interpretation
 

@@ -71,6 +71,8 @@ def test_balance_diagnostics_are_zero_for_solved_theory_state():
         B=theory["B"],
         D_total=theory["D_total"],
         torque_magnitude=1.0e-8,
+        D=theory["D"],
+        body_rotational_drag=theory["body_rotational_drag"],
     )
 
     assert math.isclose(diagnostics["force_residual"], 0.0, abs_tol=1.0e-20)
@@ -80,6 +82,72 @@ def test_balance_diagnostics_are_zero_for_solved_theory_state():
         1.0,
         rel_tol=1.0e-12,
     )
+    assert math.isclose(diagnostics["torque_residual_to_applied_ratio"], 0.0, abs_tol=1.0e-12)
+    assert math.isclose(
+        diagnostics["body_rotational_fraction"] + diagnostics["helix_rotational_fraction"],
+        1.0,
+        rel_tol=1.0e-12,
+    )
+    assert diagnostics["effective_D_from_omega_sim"] == diagnostics["effective_rotational_resistance"]
+    assert diagnostics["effective_D_ratio"] == diagnostics["effective_rotational_resistance_ratio"]
+
+
+def test_balance_diagnostics_ratios_handle_zero_applied_torque():
+    from helical_propeller.theory import compute_balance_diagnostics
+
+    diagnostics = compute_balance_diagnostics(
+        V_sim=0.0,
+        omega_sim=0.0,
+        A_total=1.0,
+        B=0.4,
+        D_total=1.0,
+        torque_magnitude=0.0,
+        D=0.7,
+        body_rotational_drag=0.3,
+    )
+
+    assert diagnostics["torque_coupling_to_applied_ratio"] == 0.0
+    assert diagnostics["torque_rotational_to_applied_ratio"] == 0.0
+    assert diagnostics["torque_residual_to_applied_ratio"] == 0.0
+    assert diagnostics["helix_rotational_resistance"] == 0.7
+    assert diagnostics["total_rotational_resistance"] == 1.0
+    assert diagnostics["helix_rotational_fraction"] == 0.7
+    assert diagnostics["body_rotational_fraction"] == 0.3
+
+
+def test_damping_torque_estimate_reduces_torque_balance_residual():
+    from helical_propeller.theory import compute_damping_torque_diagnostics
+
+    diagnostics = compute_damping_torque_diagnostics(
+        torque_balance_residual=1.0,
+        omega_sim=2.0,
+        torque_magnitude=1.0,
+        damping_model="PYELASTICA_ANALYTICAL_LINEAR_DAMPER_DEPRECATED_DAMPING_CONSTANT",
+        damping_constant=0.25,
+        rotational_damping_mass=2.0,
+        frame_mismatch_risk=False,
+    )
+
+    assert diagnostics["damping_torque_estimate"] == 1.0
+    assert diagnostics["damping_torque_to_applied_ratio"] == 1.0
+    assert diagnostics["torque_balance_with_damping_residual"] == 0.0
+    assert diagnostics["torque_balance_with_damping_residual_ratio"] == 0.0
+    assert diagnostics["torque_balance_interpretation"] == "DAMPING_DOMINATED"
+
+
+def test_damping_torque_diagnostics_reports_unknown_without_damper_information():
+    from helical_propeller.theory import compute_damping_torque_diagnostics
+
+    diagnostics = compute_damping_torque_diagnostics(
+        torque_balance_residual=1.0,
+        omega_sim=2.0,
+        torque_magnitude=1.0,
+    )
+
+    assert diagnostics["damping_model"] == "UNKNOWN"
+    assert diagnostics["damping_torque_estimate"] is None
+    assert diagnostics["torque_balance_with_damping_residual"] is None
+    assert diagnostics["torque_balance_interpretation"] == "INSUFFICIENT_DAMPING_INFO"
 
 
 def test_body_rotational_drag_reduces_torque_driven_velocity():
@@ -162,3 +230,12 @@ def test_analytical_comparison_includes_error_and_steady_state_metrics():
     assert result["A_total"] > result["A"]
     assert math.isfinite(result["force_residual_norm"])
     assert math.isfinite(result["torque_residual_norm"])
+    assert "torque_coupling_term" in result
+    assert "torque_rotational_to_applied_ratio" in result
+    assert result["total_rotational_resistance"] == result["D_total"]
+    assert result["torque_frame_assumption"] == "ASSUMED_MATERIAL_COMPONENT_2"
+    assert result["omega_frame"] == "INERTIAL_GLOBAL_Z"
+    assert result["torque_frame_status"] == "PROJECTION_UNAVAILABLE"
+    assert result["frame_mismatch_risk"] is True
+    assert result["damping_model"] == "UNKNOWN"
+    assert result["torque_balance_interpretation"] == "INSUFFICIENT_DAMPING_INFO"
