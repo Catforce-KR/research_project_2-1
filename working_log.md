@@ -1,5 +1,9 @@
 # Working Log
 
+- 2026-05-27 15:53 P/R=3.0 480000-step prefix transient 진단
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests`, `.venv\Scripts\python.exe scripts\run_transient_check.py --config configs\h1_pr3_transient_check_480000.yaml --tag duration_480000`, `.venv\Scripts\python.exe scripts\analyze_transient_prefixes.py --config configs\h1_pr3_transient_check_480000.yaml --raw data\raw\h1_pr3_transient_check_duration_480000_steps480000.csv --output data\processed\h1_pr3_transient_check_duration_480000_prefix_summary.csv --checkpoints 60000 120000 240000 360000 480000`
+  - 핵심 결과: raw prefix 분석에서 velocity 상태는 240000 steps부터 `OK`이고, 480000에서 `V_theory/V_sim=7.81`, `force_residual_norm=0.0444`로 낮아졌다.
+  - 주의: 정상상태 이후에도 `torque_residual_norm=0.7529`, `effective_D_ratio=7.093`가 유지되어 다음 단계는 duration 연장이 아니라 torque balance/rotational resistance 진단이다.
 - 2026-05-27 15:25 P/R=3.0 120000-step transient 연장 확인
   - 실행 명령: `.venv\Scripts\python.exe -m pytest tests\test_run_transient_check.py`, `.venv\Scripts\python.exe scripts\run_transient_check.py --config configs\h1_pr3_transient_check_120000.yaml --tag duration_120000`
   - 핵심 결과: `V_theory/V_sim=9.70`, `omega_theory/omega_sim=7.16`, `force_residual_norm=0.1505`로 추가 감소했고 omega는 `OK`를 유지했다.
