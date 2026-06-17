@@ -48,6 +48,7 @@ def parameter_sweep_h1(
     E: float = 1e7,
     nu: float = 0.5,
     body_length_ratio: float = 0.5,
+    damping_constant: float = 1e-3,
 ) -> dict:
     """
     Sweep over Pitch/Radius (P/R) ratios to test Hypothesis 1.
@@ -97,6 +98,7 @@ def parameter_sweep_h1(
                 total_steps=total_steps,
                 step_skip=step_skip,
                 torque_magnitude=torque_magnitude,
+                damping_constant=damping_constant,
             )
             
             if sim_result["final_velocity"] is not None:
@@ -207,6 +209,7 @@ def parameter_sweep_h2(
     density: float = 1000.0,
     E: float = 1e7,
     nu: float = 0.5,
+    damping_constant: float = 1e-3,
 ) -> dict:
     """
     Sweep over Body-to-Tail length ratios to test Hypothesis 2.
@@ -250,6 +253,7 @@ def parameter_sweep_h2(
                 total_steps=total_steps,
                 step_skip=step_skip,
                 torque_magnitude=torque_magnitude,
+                damping_constant=damping_constant,
             )
             
             if sim_result["final_velocity"] is not None:

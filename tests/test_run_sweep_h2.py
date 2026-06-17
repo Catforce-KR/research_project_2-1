@@ -25,6 +25,7 @@ def test_default_h2_config_is_smoke_sized():
     assert config["n_elem"] == 6
     assert config["total_steps"] == 5
     assert config["step_skip"] == 1
+    assert config["damping_constant"] == 1.0e-5
     assert module.is_smoke_sized(config)
 
 
@@ -44,6 +45,7 @@ def test_h2_runner_dry_run_does_not_call_sweep(monkeypatch, capsys):
     output = capsys.readouterr().out
 
     assert exit_code == 0
+    assert "damping_constant: 1e-05" in output
     assert "dry-run: simulation not executed" in output
 
 
@@ -97,7 +99,10 @@ def test_parameter_sweep_h2_marks_nonfinite_result_invalid(monkeypatch):
 
     velocity = np.array([[0.0, 0.0], [0.0, 0.0], [float("nan"), float("nan")]])
 
+    calls = []
+
     def fake_run_simulation(**kwargs):
+        calls.append(kwargs)
         return {
             "final_velocity": velocity,
             "velocity": [velocity] * 5,
@@ -110,6 +115,7 @@ def test_parameter_sweep_h2_marks_nonfinite_result_invalid(monkeypatch):
                 "steady_state_status": "NONFINITE_VALUE",
                 "omega_z": 1.0,
                 "C_t": 1.0,
+                "damping_constant": kwargs["damping_constant"],
             },
             "stiffness": None,
         }
@@ -117,9 +123,14 @@ def test_parameter_sweep_h2_marks_nonfinite_result_invalid(monkeypatch):
     monkeypatch.setattr(sweeps, "run_simulation", fake_run_simulation)
     monkeypatch.setattr(sweeps, "log_sweep_summary", lambda *args, **kwargs: None)
     row = sweeps.parameter_sweep_h2(
-        body_ratio_values=[0.3], total_steps=1, step_skip=1
+        body_ratio_values=[0.3],
+        total_steps=1,
+        step_skip=1,
+        damping_constant=1.0e-5,
     )[0.3]
 
     assert row["status"] == "NAN/INF"
     assert row["failure_reason"] == "NONFINITE_VELOCITY"
     assert row["invalid_result"] is True
+    assert row["damping_constant"] == 1.0e-5
+    assert calls[0]["damping_constant"] == 1.0e-5

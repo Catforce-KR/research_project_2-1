@@ -56,6 +56,16 @@ The smoke script imports `run_simulation` from:
 from helical_propeller.simulator import run_simulation
 ```
 
+## Model Figure Generation
+
+Generate report-ready model geometry figures without running a PyElastica time integration:
+
+```bash
+.venv\Scripts\python.exe scripts\generate_model_figures.py
+```
+
+The script visualizes the rest geometry from `build_body_helical_geometry` and saves multi-view PNG files to `results/figures/`.
+
 ## Smoke Sweeps
 
 Inspect guarded smoke sweep configs without running simulations:

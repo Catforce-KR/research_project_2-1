@@ -25,6 +25,7 @@ def test_default_h1_config_is_smoke_sized():
     assert config["n_elem"] == 6
     assert config["total_steps"] == 5
     assert config["step_skip"] == 1
+    assert config["damping_constant"] == 1.0e-5
     assert module.is_smoke_sized(config)
 
 
@@ -44,6 +45,7 @@ def test_h1_runner_dry_run_does_not_call_sweep(monkeypatch, capsys):
     output = capsys.readouterr().out
 
     assert exit_code == 0
+    assert "damping_constant: 1e-05" in output
     assert "dry-run: simulation not executed" in output
 
 
@@ -78,7 +80,10 @@ def test_parameter_sweep_h1_flattens_common_metrics(monkeypatch):
 
     velocity = np.array([[0.0, 0.0], [0.0, 0.0], [1.0e-3, 1.0e-3]])
 
+    calls = []
+
     def fake_run_simulation(**kwargs):
+        calls.append(kwargs)
         return {
             "final_velocity": velocity,
             "velocity": [velocity] * 5,
@@ -94,6 +99,7 @@ def test_parameter_sweep_h1_flattens_common_metrics(monkeypatch):
                 "steady_state_status": "OK",
                 "omega_z": 1.0,
                 "C_t": 1.0,
+                "damping_constant": kwargs["damping_constant"],
             },
             "stiffness": {
                 "status": "OK",
@@ -104,9 +110,16 @@ def test_parameter_sweep_h1_flattens_common_metrics(monkeypatch):
 
     monkeypatch.setattr(sweeps, "run_simulation", fake_run_simulation)
     monkeypatch.setattr(sweeps, "log_sweep_summary", lambda *args, **kwargs: None)
-    row = sweeps.parameter_sweep_h1(pr_values=[1.0], total_steps=1, step_skip=1)[1.0]
+    row = sweeps.parameter_sweep_h1(
+        pr_values=[1.0],
+        total_steps=1,
+        step_skip=1,
+        damping_constant=1.0e-5,
+    )[1.0]
 
     assert row["pct_error_vs_theory"] == 50.0
     assert row["steady_state_status"] == "OK"
     assert row["failure_reason"] == "NONE"
     assert row["invalid_result"] is False
+    assert row["damping_constant"] == 1.0e-5
+    assert calls[0]["damping_constant"] == 1.0e-5

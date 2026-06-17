@@ -4,6 +4,7 @@ radius: 0.01
 total_length: 0.1
 n_elem: 6
 torque_magnitude: 1.0e-8
+damping_constant: 1.0e-5
 dt: 1.0e-5
 total_steps: 5
 step_skip: 1

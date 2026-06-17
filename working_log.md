@@ -1,5 +1,20 @@
 # Working Log
 
+- 2026-06-17 19:16 모델 그림 여백 축소
+  - 실행 명령: `.venv\Scripts\python.exe scripts\generate_model_figures.py`, `.venv\Scripts\python.exe -m py_compile scripts\generate_model_figures.py`
+  - 핵심 결과: 3D 그림의 x/y/z 표시 범위를 모델 주변으로 좁히고, multi-view 3D 패널의 축 라벨을 줄여 `results/figures/model_*.png`를 다시 생성했다.
+  - 주의: 물리 모델, 형상 좌표, simulation 실행은 변경하지 않았고 그림 축 범위만 조정했다.
+
+- 2026-06-17 15:18 모델 그림 몸통 렌더링 보강
+  - 실행 명령: `.venv\Scripts\python.exe scripts\generate_model_figures.py`, `.venv\Scripts\python.exe -m py_compile scripts\generate_model_figures.py`
+  - 핵심 결과: `results/figures/model_*.png` 5개를 다시 생성했고, 몸통을 선이 아니라 반투명 원통/캡슐/단면 원으로 표시했다.
+  - 주의: 물리 모델이나 `build_body_helical_geometry`는 바꾸지 않았고, 보고서용 시각 표현만 보강했다.
+
+- 2026-06-17 15:01 모델 형상 보고서 그림 생성
+  - 실행 명령: `.venv\Scripts\python.exe scripts\generate_model_figures.py`
+  - 핵심 결과: `results/figures/model_*.png` 5개를 생성했고, overview/side/top/tail close-up/multi-view panel에서 형상, 회전 토크, RFT, 전단, 비틀림을 표시했다.
+  - 주의: PyElastica 시간 적분이나 sweep은 실행하지 않았고, 기존 rest geometry를 시각화한 그림이다.
+
 - 2026-05-27 15:53 P/R=3.0 480000-step prefix transient 진단
   - 실행 명령: `.venv\Scripts\python.exe -m pytest tests`, `.venv\Scripts\python.exe scripts\run_transient_check.py --config configs\h1_pr3_transient_check_480000.yaml --tag duration_480000`, `.venv\Scripts\python.exe scripts\analyze_transient_prefixes.py --config configs\h1_pr3_transient_check_480000.yaml --raw data\raw\h1_pr3_transient_check_duration_480000_steps480000.csv --output data\processed\h1_pr3_transient_check_duration_480000_prefix_summary.csv --checkpoints 60000 120000 240000 360000 480000`
   - 핵심 결과: raw prefix 분석에서 velocity 상태는 240000 steps부터 `OK`이고, 480000에서 `V_theory/V_sim=7.81`, `force_residual_norm=0.0444`로 낮아졌다.
@@ -51,3 +66,35 @@
   - 실행 명령: `.venv\Scripts\python.exe scripts\analyze_transient_prefixes.py`, `.venv\Scripts\python.exe -m pytest tests`
   - 핵심 결과: 기존 480000-step raw의 평균축 damper 근사에서 damping torque 비율은 약 `0.89566`, damping 포함 residual 비율은 약 `0.03562`로 계산되었다.
   - 주의: 기존 raw에는 torque projection/director history가 없어 damping 값은 근사 진단이며, 물리 공식과 장시간 실행은 변경하지 않았다.
+- 2026-05-27 19:44 P/R=3.0 callback projection 짧은 진단 실행
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests\test_callbacks.py tests\test_logging_utils.py tests\test_run_transient_check.py tests\test_theory.py`, `.venv\Scripts\python.exe scripts\run_transient_check.py --config configs\h1_pr3_callback_diagnostic.yaml --tag callback_projection_check`
+  - 핵심 결과: raw 101행 모두 torque/damping projection 열이 저장되었고, summary에서 `torque_frame_status=PROJECTED_TO_GLOBAL_Z`, `frame_mismatch_risk=False`를 확인했다.
+  - 주의: 10000-step 결과는 velocity/omega 모두 `TRANSIENT_LIKELY`로 기록 경로 검증용이며 물리 결론용이 아니다.
+- 2026-06-10 14:10 P/R=3.0 damping comparison 준비 및 부분 실행
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests\test_run_damping_check.py tests\test_callbacks.py tests\test_run_transient_check.py tests\test_analysis_metrics.py`, `.venv\Scripts\python.exe scripts\run_damping_check.py --max-cases 2`
+  - 핵심 결과: damping 1e-3/1e-4 조건 summary 저장, V_theory/V_sim은 약 9.70에서 2.45로 감소하고 damping/applied는 약 0.894에서 0.420으로 감소.
+  - 주의: 전체 3조건 120000-step 실행은 20분 제한에서 timeout되어 1e-5 조건은 아직 실행하지 않음.
+- 2026-06-10 14:25 P/R=3.0 two-stage damping screening 설정
+  - 실행 명령: `.venv\Scripts\python.exe scripts\run_damping_check.py --config configs\h1_pr3_damping_screening_short.yaml --dry-run`, `.venv\Scripts\python.exe scripts\run_damping_check.py --config configs\h1_pr3_damping_validation_medium.yaml --dry-run`
+  - 핵심 결과: 30000-step short screening 후보 `[1e-4, 3e-5, 1e-5, 3e-6, 1e-6]`와 120000-step medium validation 초기 후보 `[1e-4, 1e-5]` config를 준비함.
+  - 주의: 판단 기준은 invalid=False, stiffness=OK, deformation_exceeded=False, damping/applied 및 theory/simulation ratio 감소, 저 damping 불안정 여부이며 medium에는 후보 1~2개만 넘김.
+- 2026-06-10 14:45 final data analysis 준비
+  - 실행 명령: `.venv\Scripts\python.exe -m pytest tests\test_analysis_scripts.py`, `.venv\Scripts\python.exe scripts\check_sweep_config.py configs\sweep_h1.yaml --kind h1`, `.venv\Scripts\python.exe scripts\check_sweep_config.py configs\sweep_h2.yaml --kind h2 --expected-pr 3.0`
+  - 핵심 결과: damping decision, sweep config preflight, H1/H2 summary 분석 스크립트와 final data generation plan 문서를 추가함.
+  - 주의: simulation은 실행하지 않았고, 현재 sweep config는 damping_constant 미기재 및 final duration 부족 경고가 있음.
+- 2026-06-10 15:05 연구계획서 충족 여부 및 구조 점검
+  - 실행 명령: `.venv\Scripts\python.exe scripts\check_sweep_config.py configs\sweep_h1.yaml --kind h1`, `.venv\Scripts\python.exe scripts\check_sweep_config.py configs\sweep_h2.yaml --kind h2 --expected-pr 3.0`, `.venv\Scripts\python.exe -m pytest tests\test_analysis_scripts.py`
+  - 핵심 결과: 연구계획서 구조 문서와 gap check 문서를 추가하고, H1/H2 본실험 전 damping, duration, P/R 위험 조건 확인 필요성을 정리함.
+  - 주의: simulation, H1/H2 sweep, damping validation은 실행하지 않음.
+- 2026-06-10 15:35 H1/H2 damping 전달 경로 수정
+  - 실행 명령: `.venv\Scripts\python.exe scripts\run_sweep_h1.py --config configs\sweep_h1.yaml --dry-run`, `.venv\Scripts\python.exe scripts\run_sweep_h2.py --config configs\sweep_h2.yaml --dry-run`, `.venv\Scripts\python.exe -m pytest tests`
+  - 핵심 결과: H1/H2 config에 `damping_constant=1.0e-5`, `total_steps=240000`, `step_skip=2400`를 반영하고 runner/sweep 함수가 `run_simulation`에 damping 값을 전달하도록 수정함.
+  - 주의: H1/H2 full sweep과 damping validation simulation은 실행하지 않았으며, H2 pitch/radius는 H1 결과 후 확정 필요.
+- 2026-06-10 22:05 최종 H1/H2 결과 표/그래프 생성
+  - 실행 명령: `.venv\Scripts\python.exe scripts\generate_final_analysis_outputs.py --h1 data\helical_results\processed\sweep_h1_summary_combined.csv --h2 data\helical_results\processed\sweep_h2_summary.csv --raw-dir data\helical_results\raw`, `.venv\Scripts\python.exe -m pytest tests`
+  - 핵심 결과: `results/tables` 최종 CSV 5개, `results/figures` 최종 그래프 16개, `docs/final_results_summary.md`를 생성함. H1 속도 최적은 P/R=6.0, H1 Eta_power 최적은 P/R=5.0, H2 최적은 body_length_ratio=0.5로 정리됨.
+  - 주의: 요청 경로는 압축 해제 구조상 중첩되어 있어 실제 입력은 `data/helical_results/helical_results/h1_final_fixed`, `h1_extended_high_pr`, `h2_final_pr5` 아래 CSV를 사용했으며 simulation은 실행하지 않음.
+- 2026-06-10 22:35 low Reynolds/RFT audit
+  - 실행 명령: `.venv\Scripts\python.exe scripts\audit_low_reynolds_params.py --h1 data\helical_results\processed\sweep_h1_summary_combined.csv --h2 data\helical_results\processed\sweep_h2_summary.csv --config-h1 configs\sweep_h1.yaml --config-h2 configs\sweep_h2.yaml`, `.venv\Scripts\python.exe -m pytest tests\test_low_reynolds_audit.py`
+  - 핵심 결과: H1 최대 `Re_total_length=0.00285`, H2 최대 `Re_total_length=0.00349`로 모두 `LOW_RE_CONFIRMED`; Re 감사 표와 `docs/low_reynolds_and_rft_audit.md`를 생성함.
+  - 주의: simulation은 실행하지 않았고, CSV에 없는 물성/길이 값은 sweep config에서 읽음.

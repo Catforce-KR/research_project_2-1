@@ -1,0 +1,22 @@
+sweep,case_parameter,case_value,warning_reasons,invalid_result,failure_reason,stiffness_status,deformation_exceeded,steady_state_status,omega_steady_state_status
+H1,P/R,2.0,omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,OK,TRANSIENT_LIKELY
+H1,P/R,2.5,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H1,P/R,3.0,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H1,P/R,3.5,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H1,P/R,4.0,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H1,P/R,4.5,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H1,P/R,5.0,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H1,P/R,6.0,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H1,P/R,7.0,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H1,P/R,8.0,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H1,P/R,9.0,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H1,P/R,10.0,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H2,body_length_ratio,0.1,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H2,body_length_ratio,0.2,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H2,body_length_ratio,0.3,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H2,body_length_ratio,0.4,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H2,body_length_ratio,0.5,steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,OK
+H2,body_length_ratio,0.6,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H2,body_length_ratio,0.7,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H2,body_length_ratio,0.8,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY
+H2,body_length_ratio,0.9,steady_state_status=TRANSIENT_LIKELY; omega_steady_state_status=TRANSIENT_LIKELY,False,NONE,OK,False,TRANSIENT_LIKELY,TRANSIENT_LIKELY

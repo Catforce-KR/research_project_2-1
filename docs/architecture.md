@@ -30,6 +30,7 @@ Current modules:
 - `research_code.py`: compatibility wrapper that re-exports the package API.
 - `src/helical_propeller/simulator.py`: `SpiralRodSimulator` and `run_simulation`.
 - `scripts/run_single.py`: short smoke runner that imports `helical_propeller.simulator.run_simulation` with small parameters.
+- `scripts/generate_model_figures.py`: report figure generator for the rest geometry and annotated physical quantities; it does not run time integration.
 
 ## Execution Environment
 

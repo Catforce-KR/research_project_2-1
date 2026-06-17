@@ -44,6 +44,8 @@ def run_simulation(
     step_skip: int = 100,
     # --- Applied torque ---
     torque_magnitude: float = 1e-8,
+    # --- Damping ---
+    damping_constant: float = DAMPING_CONSTANT,
 ) -> dict:
     """
     Run a helical propeller simulation using Elastica (PyElastica).
@@ -150,7 +152,7 @@ def run_simulation(
     
     spiral_sim.dampen(spiral_rod).using(
         ea.AnalyticalLinearDamper,
-        damping_constant=DAMPING_CONSTANT,
+        damping_constant=damping_constant,
         time_step=np.float64(dt),
     )
     
@@ -174,7 +176,7 @@ def run_simulation(
         step_skip=step_skip,
         callback_params=rod_data,
         applied_torque_material=np.array([0.0, 0.0, torque_magnitude]),
-        damping_constant=DAMPING_CONSTANT,
+        damping_constant=damping_constant,
     )
 
     # 6. 실행
@@ -232,7 +234,7 @@ def run_simulation(
             "total_steps": total_steps,
             "torque_magnitude": torque_magnitude,
             "damping_model": DAMPING_MODEL,
-            "damping_constant": DAMPING_CONSTANT,
+            "damping_constant": damping_constant,
             "rotational_damping_mass": float(np.sum(mass)),
             "damping_estimate_status": "PROJECTED_ELEMENTWISE_DEPRECATED_DAMPER_EQUIVALENT",
         }
