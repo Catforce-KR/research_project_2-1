@@ -1,5 +1,10 @@
 # Working Log
 
+- 2026-06-17 21:34 GitHub 결과 데이터 슬림화
+  - 실행 명령: `git rm`, `git grep`, `git ls-files`
+  - 핵심 결과: 한글 연구 아이디어 파일은 유지하고, raw CSV는 보고서 대표 time-series 3개만 남겼으며 xlsx/중간 run/coarse 산출물을 Git에서 제거했다.
+  - 주의: GitHub 공개 파일 정리만 수행했고, 시뮬레이션은 실행하지 않았다.
+
 - 2026-06-17 20:52 GitHub 공개 파일 정리
   - 실행 명령: `git rm`, `.venv\Scripts\python.exe -m pytest tests`, `git grep`
   - 핵심 결과: 내부 지침 파일, legacy 백업 파일, Colab zip 번들, 개인 절대경로를 정리하고 README 실행 방법을 총괄형으로 재작성했다.
