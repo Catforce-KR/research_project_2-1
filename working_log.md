@@ -1,5 +1,10 @@
 # Working Log
 
+- 2026-06-17 20:52 GitHub 공개 파일 정리
+  - 실행 명령: `git rm`, `.venv\Scripts\python.exe -m pytest tests`, `git grep`
+  - 핵심 결과: 내부 지침 파일, legacy 백업 파일, Colab zip 번들, 개인 절대경로를 정리하고 README 실행 방법을 총괄형으로 재작성했다.
+  - 주의: 시뮬레이션은 실행하지 않았고, GitHub에 올라간 파일 정리와 문서 정리만 수행했다.
+
 - 2026-06-17 19:16 모델 그림 여백 축소
   - 실행 명령: `.venv\Scripts\python.exe scripts\generate_model_figures.py`, `.venv\Scripts\python.exe -m py_compile scripts\generate_model_figures.py`
   - 핵심 결과: 3D 그림의 x/y/z 표시 범위를 모델 주변으로 좁히고, multi-view 3D 패널의 축 라벨을 줄여 `results/figures/model_*.png`를 다시 생성했다.

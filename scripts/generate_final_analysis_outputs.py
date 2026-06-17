@@ -81,6 +81,13 @@ def _resolve(path: Path) -> Path:
     return path if path.is_absolute() else PROJECT_ROOT / path
 
 
+def display_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def find_existing_path(path: Path, kind: str) -> Path:
     resolved = _resolve(path)
     if resolved.exists():
@@ -585,7 +592,7 @@ def write_timeseries_figures(raw_dir: Path) -> tuple[list[Path], dict[str, str]]
         )
         if ok:
             outputs.append(FIGURES_DIR / velocity_name)
-            used[f"{key}_velocity"] = f"{path} ({message})"
+            used[f"{key}_velocity"] = f"{display_path(path)} ({message})"
         else:
             used[f"{key}_velocity_error"] = str(message)
         ok, message = save_timeseries_plot(
@@ -597,7 +604,7 @@ def write_timeseries_figures(raw_dir: Path) -> tuple[list[Path], dict[str, str]]
         )
         if ok:
             outputs.append(FIGURES_DIR / omega_name)
-            used[f"{key}_omega"] = f"{path} ({message})"
+            used[f"{key}_omega"] = f"{display_path(path)} ({message})"
         else:
             used[f"{key}_omega_error"] = str(message)
 
@@ -623,8 +630,8 @@ def write_final_report(
         "",
         "## Final Data Files",
         "",
-        f"- H1 summary: `{h1_path}`",
-        f"- H2 summary: `{h2_path}`",
+        f"- H1 summary: `{h1_path.as_posix()}`",
+        f"- H2 summary: `{display_path(h2_path)}`",
         "",
         "## H1 Result Summary",
         "",
@@ -694,7 +701,7 @@ def generate_outputs(h1_path: Path, h2_path: Path, raw_dir: Path) -> dict[str, o
     warnings = write_warning_cases(h1, h2)
     figures = write_figures(h1, h2)
     timeseries_figures, raw_used = write_timeseries_figures(actual_raw)
-    h1_label = " + ".join(str(path) for path in actual_h1_paths)
+    h1_label = " + ".join(display_path(path) for path in actual_h1_paths)
     report = write_final_report(Path(h1_label), actual_h2, h1, h2, raw_used)
     return {
         "h1_path": h1_label,

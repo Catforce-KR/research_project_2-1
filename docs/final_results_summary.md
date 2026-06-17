@@ -2,8 +2,8 @@
 
 ## Final Data Files
 
-- H1 summary: `C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h1_final_fixed\processed\sweep_h1_summary.csv + C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h1_extended_high_pr\processed\sweep_h1_summary.csv`
-- H2 summary: `C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\processed\sweep_h2_summary.csv`
+- H1 summary: `data/helical_results/helical_results/h1_final_fixed/processed/sweep_h1_summary.csv + data/helical_results/helical_results/h1_extended_high_pr/processed/sweep_h1_summary.csv`
+- H2 summary: `data/helical_results/helical_results/h2_final_pr5/processed/sweep_h2_summary.csv`
 
 ## H1 Result Summary
 
@@ -35,14 +35,6 @@
 - The project combines PyElastica rod dynamics with RFT forcing, then compares the result with torque-driven analytical RFT.
 - Therefore the comparison is not full CFD vs simulation; it is analytical RFT vs PyElastica-RFT simulation.
 
-## Reynolds Number Audit
-
-- Using `Re = density * abs(V) * L / fluid_viscosity`, the final H1 data have maximum `Re_radius=2.56e-4` and maximum `Re_total_length=2.56e-3` based on `V_sim`.
-- The final H2 data have maximum `Re_radius=2.48e-4` and maximum `Re_total_length=2.48e-3` based on `V_sim`.
-- Using `V_theory` gives maximum total-length Reynolds numbers of `2.86e-3` for H1 and `3.49e-3` for H2.
-- These values remain well below `Re=1`, and also below `Re=0.1`, so the final simulation conditions support a low-Reynolds-number interpretation and make RFT qualitatively appropriate as the analytical comparison model.
-- `damping_constant` is not included in Reynolds number calculations because it is a numerical PyElastica damping term, not the physical fluid viscosity.
-
 ## Limitations
 
 - Full Navier-Stokes / CFD is not solved.
@@ -60,9 +52,9 @@
 
 ## Raw Time-Series Files Used
 
-- `h1_pr6_velocity`: C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\raw\sim_N80_pr6.00_T1e-08.csv (Vz_mean)
-- `h1_pr6_omega`: C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\raw\sim_N80_pr6.00_T1e-08.csv (Omega_z)
-- `h1_pr5_velocity`: C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\raw\sim_N80_pr5.00_T1e-08.csv (Vz_mean)
-- `h1_pr5_omega`: C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\raw\sim_N80_pr5.00_T1e-08.csv (Omega_z)
-- `h2_body_ratio_0p5_velocity`: C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\raw\sweep_h2_br0.50_timeseries.csv (Vz_mean)
-- `h2_body_ratio_0p5_omega`: C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\raw\sweep_h2_br0.50_timeseries.csv (Omega_z)
+- `h1_pr6_velocity`: data/helical_results/helical_results/h2_final_pr5/raw/sim_N80_pr6.00_T1e-08.csv (Vz_mean)
+- `h1_pr6_omega`: data/helical_results/helical_results/h2_final_pr5/raw/sim_N80_pr6.00_T1e-08.csv (Omega_z)
+- `h1_pr5_velocity`: data/helical_results/helical_results/h2_final_pr5/raw/sim_N80_pr5.00_T1e-08.csv (Vz_mean)
+- `h1_pr5_omega`: data/helical_results/helical_results/h2_final_pr5/raw/sim_N80_pr5.00_T1e-08.csv (Omega_z)
+- `h2_body_ratio_0p5_velocity`: data/helical_results/helical_results/h2_final_pr5/raw/sweep_h2_br0.50_timeseries.csv (Vz_mean)
+- `h2_body_ratio_0p5_omega`: data/helical_results/helical_results/h2_final_pr5/raw/sweep_h2_br0.50_timeseries.csv (Omega_z)

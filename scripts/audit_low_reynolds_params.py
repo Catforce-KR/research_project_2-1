@@ -42,6 +42,13 @@ def _resolve(path: Path) -> Path:
     return path if path.is_absolute() else PROJECT_ROOT / path
 
 
+def display_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def load_config(path: Path) -> dict[str, Any]:
     resolved = _resolve(path)
     if not resolved.exists():
@@ -315,8 +322,8 @@ def write_audit_doc(
         "",
         "## Data Sources",
         "",
-        f"- H1 summary: `{' + '.join(str(path) for path in h1_sources)}`",
-        f"- H2 summary: `{h2_source}`",
+        f"- H1 summary: `{' + '.join(display_path(path) for path in h1_sources)}`",
+        f"- H2 summary: `{display_path(h2_source)}`",
         "- Config fallback: `configs/sweep_h1.yaml`, `configs/sweep_h2.yaml`",
         "",
         "## Existing Documentation Check",

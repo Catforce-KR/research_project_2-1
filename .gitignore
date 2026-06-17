@@ -2,6 +2,12 @@ __pycache__/
 .venv/
 *.pyc
 .pytest_cache/
+.env
+.env.*
+*.log
+*.tmp
+*.bak
+*.zip
 
 data/raw/*.csv
 data/processed/*.csv

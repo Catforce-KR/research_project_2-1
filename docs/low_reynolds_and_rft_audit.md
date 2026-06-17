@@ -6,8 +6,8 @@ This document checks whether the completed H1/H2 result summaries remain in a lo
 
 ## Data Sources
 
-- H1 summary: `C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h1_final_fixed\processed\sweep_h1_summary.csv + C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h1_extended_high_pr\processed\sweep_h1_summary.csv`
-- H2 summary: `C:\Users\LG\research_project_2-1\data\helical_results\helical_results\h2_final_pr5\processed\sweep_h2_summary.csv`
+- H1 summary: `data/helical_results/helical_results/h1_final_fixed/processed/sweep_h1_summary.csv + data/helical_results/helical_results/h1_extended_high_pr/processed/sweep_h1_summary.csv`
+- H2 summary: `data/helical_results/helical_results/h2_final_pr5/processed/sweep_h2_summary.csv`
 - Config fallback: `configs/sweep_h1.yaml`, `configs/sweep_h2.yaml`
 
 ## Existing Documentation Check

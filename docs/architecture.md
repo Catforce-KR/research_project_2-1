@@ -4,8 +4,6 @@
 
 The active simulation implementation now lives under `src/helical_propeller/`. The root `research_code.py` file is retained as a compatibility wrapper so existing `import research_code` users continue to work.
 
-The original pre-modularization script is backed up as `research_code_legacy.py`.
-
 ## Module Layout
 
 The package originated from a behavior-preserving extraction. The analytical layer now also contains an explicit torque-driven RFT approximation aligned with the configured endpoint-torque simulation.

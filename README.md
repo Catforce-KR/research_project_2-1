@@ -2,45 +2,55 @@
 
 Low-Reynolds-number helical propeller simulation research using PyElastica and Resistive Force Theory (RFT).
 
-## Research Question
+The project compares a torque-driven analytical RFT approximation with a PyElastica/Cosserat-rod simulation using local RFT drag. Analytical predictions and simulation outputs should be reported separately.
 
-How do helix pitch/radius ratio and body-to-tail length ratio affect propulsion velocity, efficiency, and structural stability in a low-Reynolds-number helical swimmer model?
+## Research Questions
 
-The project compares analytical RFT predictions with PyElastica / Cosserat rod simulation results. Analytical predictions and simulation outputs should always be reported separately.
+- H1: How does helix pitch/radius ratio (`P/R`) affect propulsion velocity and efficiency?
+- H2: How does body-to-tail length ratio affect propulsion velocity, efficiency, and stability?
+- Do the final simulation conditions remain in a low-Reynolds-number regime where RFT is a reasonable analytical comparison?
 
-## Current Status
+## Repository Layout
 
-- The active implementation has been moved into `src/helical_propeller/`.
-- `research_code.py` remains at the repository root as a compatibility wrapper for existing imports and script usage.
-- `research_code_legacy.py` preserves the pre-modularization single-file implementation.
-- `scripts/run_single.py` is a short smoke runner only. It is not intended for production-quality parameter studies.
-- H1/H2 sweep helpers are available in `helical_propeller.sweeps`, but long parameter sweeps, stiffness calibration sweeps, and convergence sweeps should only be run when explicitly requested.
-- Result summaries now report theory- and simulation-referenced errors, steady-state diagnostics, and invalid-result reasons for analysis filtering.
-- `V_theory` now uses a torque-driven RFT resistance balance with approximate body translation and rotation drag, matching the endpoint-torque experiment type more closely than the former prescribed-omega comparison.
+- `research_code.py`: compatibility wrapper for older `import research_code` usage.
+- `src/helical_propeller/`: active package implementation.
+- `scripts/`: runnable helpers for smoke runs, sweeps, analysis, audits, and figure generation.
+- `configs/`: YAML configs for smoke checks, sweeps, damping checks, and diagnostics.
+- `docs/`: model assumptions, architecture, experiment plan, validation notes, and final summaries.
+- `data/helical_results/`: committed final/diagnostic CSV result data used by the report figures.
+- `results/figures/`: committed report-ready PNG figures.
+- `results/tables/`: committed summary CSV tables.
+- `tests/`: lightweight pytest test suite.
 
-## Installation
+## Environment
 
-This project uses a Windows CPython virtual environment only. The expected interpreter is:
+Use the Windows CPython virtual environment:
 
 ```bash
 .venv\Scripts\python.exe
 ```
 
-The current confirmed interpreter version is Python 3.13.3. Do not use bare `python`, `.venv\bin\python.exe`, or `C:\msys64\ucrt64\bin\python.exe` for this project. If `.venv\Scripts\python.exe` is missing, report it as an environment problem instead of falling back to MSYS Python.
+The confirmed project interpreter version is Python 3.13.3. Do not use bare `python`, `.venv\bin\python.exe`, or MSYS Python for project commands.
 
-Install dependencies through the Windows CPython venv:
+Install dependencies:
 
 ```bash
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-PyElastica may have a different package name and import name depending on the installed version. This repository lists `pyelastica` in `requirements.txt`, while the current code imports it as:
+PyElastica is listed as `pyelastica` in `requirements.txt`, while the code imports it as:
 
 ```python
 import elastica as ea
 ```
 
-## Single Smoke Simulation
+## Quick Validation
+
+Run the lightweight test suite:
+
+```bash
+.venv\Scripts\python.exe -m pytest tests
+```
 
 Run a short smoke simulation:
 
@@ -48,27 +58,44 @@ Run a short smoke simulation:
 .venv\Scripts\python.exe scripts\run_single.py
 ```
 
-This uses small `n_elem`, `total_steps`, and `step_skip` values to avoid long simulation runs. It prints a compact summary including velocities, both percentage-error references, steady-state status, invalid-result status, and stiffness check status.
+The smoke run uses small `n_elem`, `total_steps`, and `step_skip` values. It is for import/execution validation, not final physical conclusions.
 
-The smoke script imports `run_simulation` from:
+## Model Figures
 
-```python
-from helical_propeller.simulator import run_simulation
-```
-
-## Model Figure Generation
-
-Generate report-ready model geometry figures without running a PyElastica time integration:
+Generate report-ready model geometry figures without time integration:
 
 ```bash
 .venv\Scripts\python.exe scripts\generate_model_figures.py
 ```
 
-The script visualizes the rest geometry from `build_body_helical_geometry` and saves multi-view PNG files to `results/figures/`.
+Outputs are written to `results/figures/` and include perspective, side, top, director close-up, and multi-view physics-panel figures.
 
-## Smoke Sweeps
+## Final Analysis Outputs
 
-Inspect guarded smoke sweep configs without running simulations:
+Regenerate final tables, figures, and summary text from completed CSV files:
+
+```bash
+.venv\Scripts\python.exe scripts\generate_final_analysis_outputs.py --h1 data\helical_results\processed\sweep_h1_summary_combined.csv --h2 data\helical_results\processed\sweep_h2_summary.csv --raw-dir data\helical_results\raw
+```
+
+If those short paths are not present locally, the script searches the committed `data/helical_results/` tree. It only reads existing CSV files and does not run simulations.
+
+Audit Reynolds-number ranges for the final data:
+
+```bash
+.venv\Scripts\python.exe scripts\audit_low_reynolds_params.py --h1 data\helical_results\processed\sweep_h1_summary_combined.csv --h2 data\helical_results\processed\sweep_h2_summary.csv --config-h1 configs\sweep_h1.yaml --config-h2 configs\sweep_h2.yaml
+```
+
+Check final sweep configs without launching long runs:
+
+```bash
+.venv\Scripts\python.exe scripts\check_sweep_config.py configs\sweep_h1.yaml --kind h1
+.venv\Scripts\python.exe scripts\check_sweep_config.py configs\sweep_h2.yaml --kind h2 --expected-pr 5.0
+```
+
+## Sweep Execution
+
+Inspect guarded smoke configs:
 
 ```bash
 .venv\Scripts\python.exe scripts\run_pilot_single.py --dry-run
@@ -78,7 +105,7 @@ Inspect guarded smoke sweep configs without running simulations:
 .venv\Scripts\python.exe scripts\run_n_convergence.py --dry-run
 ```
 
-Run only the guarded pilot/smoke checks:
+Run only guarded smoke checks:
 
 ```bash
 .venv\Scripts\python.exe scripts\run_pilot_single.py
@@ -88,34 +115,47 @@ Run only the guarded pilot/smoke checks:
 .venv\Scripts\python.exe scripts\run_n_convergence.py
 ```
 
-Longer sweep configs must be passed explicitly with `--config`.
-Actual coarse sweep configs such as `configs/sweep_h1.yaml` and `configs/sweep_h2.yaml` require `--allow-long` to execute. They use `n_elem=80`, `E=1e7`, and `total_steps=10000` as conservative first-pass settings, not final validated constants.
+Longer H1/H2 sweeps and calibration/convergence sweeps must be passed explicitly with `--config`; long configs require `--allow-long`.
 
-## Results And Data
+## Final Report Data
 
-- Single simulation time-series CSV: `data/raw/`
-- Sweep detail/time-series CSV: `data/raw/`
-- Sweep summary CSV: `data/processed/`
-- Other processed generated CSV: `data/processed/`
+Primary final summary CSVs:
+
+- `data/helical_results/helical_results/h1_final_fixed/processed/sweep_h1_summary.csv`
+- `data/helical_results/helical_results/h1_extended_high_pr/processed/sweep_h1_summary.csv`
+- `data/helical_results/helical_results/h2_final_pr5/processed/sweep_h2_summary.csv`
+
+Representative time-series CSVs used in report figures:
+
+- `data/helical_results/helical_results/h2_final_pr5/raw/sim_N80_pr5.00_T1e-08.csv`
+- `data/helical_results/helical_results/h2_final_pr5/raw/sim_N80_pr6.00_T1e-08.csv`
+- `data/helical_results/helical_results/h2_final_pr5/raw/sweep_h2_br0.50_timeseries.csv`
+
+Derived report outputs:
+
 - Figures: `results/figures/`
-- Summary tables: `results/tables/`
-- Reports: `results/reports/`
+- Tables: `results/tables/`
+- Final summary: `docs/final_results_summary.md`
+- Low-Re/RFT audit: `docs/low_reynolds_and_rft_audit.md`
 
-Large generated result files should not be committed unless explicitly requested.
+## Result Summary
 
-Sweep summaries preserve the legacy `pct_error` column as the simulation-referenced alias and add torque-driven theory terms, simulated/theoretical angular velocity, efficiency source/model fields, error/steady-state status fields, and `failure_reason`/`invalid_result` for analysis filtering.
+- H1 speed optimum in the final data: `P/R=6.0`.
+- H1 power-efficiency optimum: `P/R=5.0`.
+- H2 uses representative `P/R=5.0`.
+- H2 optimum in the final data: `body_length_ratio=0.5`.
+- The balanced final design candidate is `P/R=5.0`, `body_length_ratio=0.5`.
 
-## Tests
+## Repository Hygiene
 
-Run the lightweight tests:
+- `.env` and `.env.*` files are ignored and should not be committed.
+- API keys, secrets, passwords, and personal machine paths should not be committed.
+- Python caches, pytest caches, logs, temp files, backup files, and zip bundles are ignored.
+- Generated result files are normally ignored by pattern, but the final report figures/tables in this repository were committed intentionally for report reproducibility.
 
-```bash
-.venv\Scripts\python.exe -m pytest tests
-```
+## Notes
 
-These tests do not run long simulations or parameter sweeps. The default validation commands are:
-
-```bash
-.venv\Scripts\python.exe -m pytest tests
-.venv\Scripts\python.exe scripts\run_single.py
-```
+- This project does not solve full Navier-Stokes/CFD.
+- RFT is a local drag approximation under low-Reynolds-number assumptions.
+- `damping_constant` is a PyElastica numerical damping/stabilization setting, not the physical fluid viscosity.
+- `fluid_viscosity` is the viscosity used by the RFT force model and Reynolds-number audit.
